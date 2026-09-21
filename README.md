@@ -1,12 +1,12 @@
 # TypeSafe for Laravel
 
-A typed PHP / Laravel client for [TypeSafe AI](https://docs.typesafe.ai/llms.txt)'s **System One** decision model (Jev): ask a
+A typed PHP / Laravel client for [TypeSafe AI](https://docs.typesafe.ai/introduction)'s **System One** decision model (Jev): ask a
 model *choice*, *score* and *yes/no* questions about some text or data, and get calibrated probabilities back
 instead of prose.
 
 > **Unofficial.** This is a community SDK written by [Marcelo Marin](https://github.com/marcemarin). It is not made,
 > endorsed or supported by TypeSafe AI, who only ship official Python and JavaScript SDKs. Everything here is built on
-> their public docs (<https://docs.typesafe.ai/llms.txt>); where the docs and this README disagree, the docs win.
+> their public docs (<https://docs.typesafe.ai/introduction>); where the docs and this README disagree, the docs win.
 
 ```php
 $result = TypeSafe::state(['message' => $text, 'program' => 'Morning show'])
@@ -38,8 +38,8 @@ $result->noul('insult')->isTrue(0.6);      // false
 ## What is a decision model?
 
 An LLM answers a question by *generating text*, which you then have to parse and hope is consistent. A decision model
-like Jev answers by *choosing*: for every question you ask it returns a probability distribution over the options you
-gave it, and it "never returns a value outside them" ([primitives](https://docs.typesafe.ai/primitives.md)).
+like Jev answers by *choosing*: in TypeSafe's words, it "returns a probability distribution over your options or levels,
+never a value outside them" ([primitives](https://docs.typesafe.ai/primitives.md)).
 There is nothing to parse, and the probabilities tell you how sure it is.
 
 That makes it a good fit for the boring, high-volume decisions that sit in front of the rest of your app:
@@ -289,6 +289,15 @@ Other options: `model: 'jev-1.13.0'` and `failOpen: true|false`.
 right now"). Set `TYPESAFE_FAIL_OPEN=true` (or pass `failOpen: true`) to let the input through instead. Either way the
 exception is passed to Laravel's `report()`, so you find out. Failing open is right for "nice to have" checks and wrong
 for anything that protects people; choose deliberately.
+
+Two things to know before putting it on a form:
+
+- **It is a network call inside validation.** Expect roughly a second per rule (each `NoulRule` is its own request), on
+  the request thread. That is fine for a profile form and wrong for a hot endpoint; for those, accept the input, decide
+  in a queued job and act on the result. Put cheap rules (`required`, `string`, `max`) first so obviously bad input never
+  reaches the API.
+- **The validated value leaves your server.** It is sent to TypeSafe as the `state`. Check that against your privacy
+  policy before validating anything sensitive, and never point it at passwords or payment data.
 
 Errors that are bugs rather than outages are **never** swallowed: a rejected API key, a 422, a malformed response or an
 invalid question all throw, even with `failOpen: true`. Otherwise a wrong key would silently turn moderation off.
