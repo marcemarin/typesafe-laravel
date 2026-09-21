@@ -58,7 +58,8 @@ few hundred input tokens.
 
 ## Installation
 
-Requires PHP 8.2+ and Laravel 11, 12 or 13 (Laravel 13 itself needs PHP 8.3+).
+Requires PHP 8.2+ and Laravel 12 or 13 (Laravel 13 itself needs PHP 8.3+). Laravel 11 is not supported: it no longer
+receives security fixes, and Composer refuses to install it because of unpatched advisories.
 
 ```bash
 composer require marcemarin/typesafe-laravel
