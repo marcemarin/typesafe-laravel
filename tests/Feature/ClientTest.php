@@ -222,6 +222,17 @@ describe('errors', function () {
         'nested error.message' => [['error' => ['message' => 'nested boom']], 'nested boom'],
         'plain text' => ['gateway exploded', 'gateway exploded'],
         'empty body' => ['', 'HTTP 500.'],
+        'observed 400 shape' => [['detail' => ['error_type' => 'api_usage_error', 'message' => 'Unknown model: jev-nope']], 'Unknown model: jev-nope'],
+        'string detail' => [['detail' => 'Not found'], 'Not found'],
+        'observed 422 shape' => [['detail' => [
+            ['type' => 'list_type', 'loc' => ['body', 'questions', 's', 'score', 'criteria'], 'msg' => 'Input should be a valid list', 'input' => 1],
+            'not an issue',
+            ['type' => 'x', 'loc' => ['body', 'state'], 'msg' => 'Field required'],
+            ['type' => 'x', 'loc' => [], 'msg' => 'Fourth is cut'],
+        ]], 'questions.s.score.criteria: Input should be a valid list; state: Field required'],
+        'odd loc parts' => [['detail' => [['loc' => ['body', 3, ['nested']], 'msg' => 'odd loc'], ['loc' => [], 'msg' => 'no path']]], '3.?: odd loc; no path'],
+        'issues without messages' => [['detail' => [['loc' => ['body']]]], '{"detail":[{"loc":["body"]}]}'],
+        'very long text' => [str_repeat('x', 400), str_repeat('x', 299).'…'],
     ]);
 
     it('maps other statuses to the base exception', function () {

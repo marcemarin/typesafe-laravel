@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Marcemarin\TypeSafe;
 
+use DateInterval;
+use DateTimeInterface;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Http\Client\ConnectionException as HttpConnectionException;
 use Illuminate\Http\Client\Factory as HttpFactory;
@@ -68,7 +70,7 @@ final class TypeSafeClient implements Client
         return Result::fromArray($this->post($request));
     }
 
-    private function sendCached(DecisionRequest $request, \DateTimeInterface|\DateInterval|int $ttl): Result
+    private function sendCached(DecisionRequest $request, DateInterval|DateTimeInterface|int $ttl): Result
     {
         if ($this->cache === null) {
             throw new LogicException('cacheFor() needs a cache repository; pass one to the TypeSafeClient constructor.');
@@ -148,17 +150,22 @@ final class TypeSafeClient implements Client
     }
 
     /**
-     * Best-effort one-line summary of an error body. The docs do not specify its shape, so this
-     * only looks for the usual suspects and otherwise falls back to the raw text.
+     * Best-effort one-line summary of an error body. The docs do not specify its shape; observed
+     * bodies are `{"detail": {"message": "..."}}` and, for 422, `{"detail": [{"loc": [...], "msg": "..."}]}`.
+     * Anything else falls back to the raw text.
      *
      * @param  array<mixed>  $body
      */
     private static function describe(array $body, string $raw): string
     {
-        $candidates = [$body['message'] ?? null, $body['detail'] ?? null, $body['error'] ?? null];
-        if (is_array($body['error'] ?? null)) {
-            $candidates[] = $body['error']['message'] ?? null;
-        }
+        $detail = $body['detail'] ?? null;
+        $candidates = [
+            is_array($detail) ? ($detail['message'] ?? null) : $detail,
+            $body['message'] ?? null,
+            $body['error'] ?? null,
+            is_array($body['error'] ?? null) ? ($body['error']['message'] ?? null) : null,
+            is_array($detail) && array_is_list($detail) ? self::summarizeIssues($detail) : null,
+        ];
 
         foreach ($candidates as $candidate) {
             if (is_string($candidate) && $candidate !== '') {
@@ -169,5 +176,25 @@ final class TypeSafeClient implements Client
         $raw = trim($raw);
 
         return $raw === '' ? '.' : ': '.mb_strimwidth($raw, 0, 300, '…');
+    }
+
+    /**
+     * Turn `[{"loc": ["body", "questions", "a"], "msg": "..."}]` into "questions.a: ...; ...".
+     *
+     * @param  array<mixed>  $issues
+     */
+    private static function summarizeIssues(array $issues): ?string
+    {
+        $lines = [];
+        foreach (array_slice($issues, 0, 3) as $issue) {
+            if (! is_array($issue) || ! is_string($issue['msg'] ?? null)) {
+                continue;
+            }
+            $loc = is_array($issue['loc'] ?? null) ? array_filter($issue['loc'], static fn (mixed $part): bool => $part !== 'body') : [];
+            $path = implode('.', array_map(static fn (mixed $part): string => is_scalar($part) ? (string) $part : '?', $loc));
+            $lines[] = $path === '' ? $issue['msg'] : "{$path}: {$issue['msg']}";
+        }
+
+        return $lines === [] ? null : implode('; ', $lines);
     }
 }

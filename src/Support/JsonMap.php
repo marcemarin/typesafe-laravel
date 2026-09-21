@@ -12,8 +12,8 @@ final class JsonMap
      * for maps like `criteria` and `questions`. Only that ambiguous case needs an object; everything
      * else stays a plain array so `Http::assertSent()` callbacks can index into the request data.
      *
-     * @param  array<string, mixed>  $map
-     * @return array<string, mixed>|object
+     * @param  array<int|string, mixed>  $map
+     * @return array<int|string, mixed>|object
      */
     public static function of(array $map): array|object
     {
