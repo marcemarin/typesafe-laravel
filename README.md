@@ -1,5 +1,10 @@
 # TypeSafe for Laravel
 
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/marcemarin/typesafe-laravel.svg)](https://packagist.org/packages/marcemarin/typesafe-laravel)
+[![CI](https://github.com/marcemarin/typesafe-laravel/actions/workflows/ci.yml/badge.svg)](https://github.com/marcemarin/typesafe-laravel/actions/workflows/ci.yml)
+[![PHPStan level 8](https://img.shields.io/badge/PHPStan-level%208-brightgreen.svg)](phpstan.neon)
+[![License](https://img.shields.io/packagist/l/marcemarin/typesafe-laravel.svg)](LICENSE)
+
 A typed PHP / Laravel client for [TypeSafe AI](https://docs.typesafe.ai/introduction)'s **System One** decision model (Jev): ask a
 model *choice*, *score* and *yes/no* questions about some text or data, and get calibrated probabilities back
 instead of prose.
