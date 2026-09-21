@@ -462,6 +462,18 @@ LLM calls only on the messages that deserve them.
 intent, tone, moderation flags and an "is this good enough to read on air?" score come from one decision-model request
 with several questions, and an LLM extractor (topic, place, name, summary) is only called for the messages worth the cost.
 
+## Alternatives
+
+TypeSafe is new and several community PHP clients appeared within days of each other. If this one does not fit, look at:
+
+- [sanmai/typesafe-ai-php](https://github.com/sanmai/typesafe-ai-php): framework-agnostic PHP client (Guzzle, JMS Serializer).
+- [butochnikov/typesafe-sdk-php](https://packagist.org/packages/butochnikov/typesafe-sdk-php): PHP client with synchronous and asynchronous requests, plus a separate Laravel bridge.
+- [valksor/typesafe-sdk-php](https://packagist.org/packages/valksor/typesafe-sdk-php): aims for 1:1 parity with the official SDKs.
+
+What this package is for: Laravel applications. It builds on Laravel's own HTTP client, and adds the pieces that only make
+sense inside the framework: a validation rule, `TypeSafe::fake()` with assertions, backed-enum answers, config, translations
+and cache integration.
+
 ## Development
 
 ```bash
